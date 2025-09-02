@@ -41,7 +41,7 @@ export default function RootLayout({
         </nav>
       </header>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 text-gray-600">
         {children}
       </div>
 

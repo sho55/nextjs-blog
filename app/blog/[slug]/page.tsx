@@ -1,3 +1,4 @@
+import { getPostBySlug } from "@/libs/posts";
 import { Metadata} from "next";
 type Props = {
     params: {slug: string}
@@ -21,40 +22,6 @@ export async function generateMetadata({params}:Props) : Promise<Metadata> {
             type:"article"
         }
     }
-}
-
-async function getPostBySlug(slug:string){
-    //ダミーデータ
-    const posts = {
-        "about-nextjs": {
-            title:"Next.jsについて",
-            content:`<h2>Next.jsの最新バージョンについて</h2>
-            <p>Next.jsは15がリリースされてます。React19を標準サポートしてます。</p>`,
-            date:"2025-08-01",
-            category:"programming",
-            author:"山田太郎"
-        },
-        "about-ts": {
-            title:"TypeScriptとは？",
-            content:`<h2>TypeScriptのメリット</h2>
-                    <p>型を安全に扱うことができる言語</p>
-                    
-                    <h2>利点</h2>
-                    <p>誤ったデータが入ってきたときに即座に検知することができ、エラーが減る</p>`,
-            date:"2025-08-10",
-            category:"programming",
-            author:"山田太郎"
-        },
-        "my-profile": {
-            title:"もんしょーのプロフィール",
-            content:`<h2>はじめに</h2>
-            <p>ITエンジニア。日々プログラミングを教えている。1994年生まれ。左利き。</p>`,
-            date:"2024-01-01",
-            category:"other",
-            author:"もんしょー"
-        },
-    }
-    return posts[slug as keyof typeof posts] || null;
 }
 
 export default async function PostPage({ params }:Props){
@@ -82,10 +49,21 @@ export default async function PostPage({ params }:Props){
                     <time className="text-sm text-gray-500">
                         {new Date(post.date).toLocaleString("jp-JP")}
                     </time>
+                    <span>{post.readTime}分で読める</span>
                 </div>
 
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">{post.title}</h1>
                 <div className="flex items-center text-sm text-gray-600">by:{post.author}</div>
+
+                <div className="flex flex-wrap gap-2">
+                    {post.tags.map(
+                        (tag) => (
+                            <span key={tag} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                #{tag}
+                            </span>
+                        )
+                    )}
+                </div>
             </header>
             {/* 本文 */}
             <div className="max-w-none text-gray-600"
