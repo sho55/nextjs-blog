@@ -66,7 +66,7 @@ export default async function PostPage({ params }:Props){
         return(
             <div className="text-center py-12">
                 <h1 className="text-2xl font-bold text-gray-800 mb-4">記事が見つかりません</h1>
-                <p className="text-gray-600">指定された記事が存在しないか、削除された可能性があります。</p>
+                <p className="text-gray-600">された記事が存在しないか、削除された可能性があります。</p>
             </div>
             
         )
