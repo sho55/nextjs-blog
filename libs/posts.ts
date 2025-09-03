@@ -65,11 +65,13 @@ export function getPostsByCategory(category: string): Post[] {
   );
 }
 
-// 年月別の記事を取得する
-export function getPostsByYearMonth(year: string, month: string): Post[] {
-  // ０埋めする
-  const yearMonth = year + "-" + month.padStart(2, "0");
-  return posts.filter((post) => post.date.substring(0, 7) === yearMonth);
+// 年月の記事を取得する
+export function getPostsByYearMonth(year:string,month:string):Post[]{
+  // 2025/08...OK
+  // 2025/8...OKしたい
+  // 0埋めをする
+  const yearMonth = year+ "-" + month.padStart(2,"0");
+  return posts.filter((post) => post.date.substring(0,7) === yearMonth)
 }
 
 // 全件取得する
