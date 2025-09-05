@@ -1,4 +1,5 @@
 "use client"
+import AdvancedLinkExample from "@/components/AvancedLink";
 import { useState,useEffect } from "react";
 export default function Home() {
   const [currentDate, setCurrentDate] = useState<string>("")
@@ -35,7 +36,8 @@ export default function Home() {
         <p className="text-xl text-gray-600 mb-8">
           Next.js学習者のためのサイト
         </p>
-        {/* <div className="text-gray-800">{currentDate}</div> */}
+        <AdvancedLinkExample/>
+        
       </div>
     </main>
   );

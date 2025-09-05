@@ -1,6 +1,7 @@
 import "@/app/globals.css"
 import Link from "next/link";
 import {Inter} from "next/font/google"
+import Navigation from "@/components/Navigation";
 
 const inter = Inter({subsets:["latin"]});
 
@@ -17,29 +18,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
     <body className={inter.className}>
-      <header className="bg-white shadow-sm text-gray-600 border-b p-4">
-        <nav className="container mx-auto p-4 ">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold">
-              もんしょーのブログ
-            </Link>
-            <div className="flex space-x-6">
-              <Link href="/" className="text-gray-400 hover:text-gray-800 transition-colors">
-                Home
-              </Link>
-              <Link href="/blog" className="text-gray-400 hover:text-gray-800 transition-colors">
-              ブログ記事
-              </Link>
-              <Link href="/about" className="text-gray-400 hover:text-gray-800 transition-colors">
-                このブログについて
-              </Link>
-              <Link href="/contact" className="text-gray-400 hover:text-gray-800 transition-colors">
-              　お問い合わせ
-              </Link>
-            </div>
-          </div>
-        </nav>
-      </header>
+      <Navigation/>
 
       <div className="min-h-screen bg-gray-50 text-gray-600">
         {children}

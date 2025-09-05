@@ -1,3 +1,5 @@
+import SearchAndNavigation from "@/components/SearchAndNavigation"
+
 type Post ={
     id: string,
     title: string,
@@ -42,6 +44,8 @@ export default function BlogPage() {
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-700">最近の記事</h1>
             </div>
+
+            <SearchAndNavigation />
             <div className="space-y-6">
                 {/* 記事を表示 */}
                 {posts.map(
