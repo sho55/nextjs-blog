@@ -1,56 +1,39 @@
+import OptimizedNavigation from "@/components/OptimizedNavigation";
 import SearchAndNavigation from "@/components/SearchAndNavigation"
+import ServerActionNavigation from "@/components/ServerActionNavigation";
+import { getAllPosts, searchPostsByTitleAndContent } from "@/libs/posts";
+import { searchPosts } from "@/libs/search-actions";
 
-type Post ={
-    id: string,
-    title: string,
-    body: string,
-    date: string,
-    category: string,
-    slug: string
+type Props = {
+    searchParams: {q?: string};
 }
 
-//ダミーデータ
-const posts: Post[] = [
-    {
-    id: "1",
-    title: "Next.jsについて",
-    body: "Reactベースのフレームワークです。",
-    date: "2025-08-01",
-    category: "programming",
-    slug: "about-nextjs"   
-    },
-    {
-    id: "2",
-    title: "TypeScriptについて",
-    body: "JavaScriptの型を安全に扱える言語",
-    date: "2025-08-10",
-    category: "programming",
-    slug: "about-ts"   
-    },
-    {
-    id: "3",
-    title: "もんしょーのプロフィール",
-    body: "1994年生まれ。東京都出身。",
-    date: "2020-01-01",
-    category: "other",
-    slug: "my-profile"   
-    },
-]
-
 //JSX構文
-export default function BlogPage() {
+export default function BlogPage({searchParams}:Props) {
+
+    const query = searchParams.q;
+    const posts = query ? searchPostsByTitleAndContent(query): getAllPosts();
     return (
         <div className="text-gray-700">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-700">最近の記事</h1>
+                <h1 className="text-3xl font-bold text-gray-700">{query? `「${query}」の検索結果` :"最近の記事"}</h1>
+                <div>
+                    {query && (
+                        <p className="text-gray-600 mt-2">
+                            {posts.length}件の記事か見つかりました
+                        </p>
+                    )}
+                </div>
             </div>
 
             <SearchAndNavigation />
+            <ServerActionNavigation/>
+            <OptimizedNavigation />
             <div className="space-y-6">
                 {/* 記事を表示 */}
                 {posts.map(
                     (post) => (
-                        <article key={post.id}
+                        <article key={post.slug}
                         className="bg-white rounded-3xl shadow-2xl hover:shadow-2xs transition-shadow p-7"
                         >
                             <div>

@@ -74,6 +74,29 @@ export function getPostsByYearMonth(year:string,month:string):Post[]{
   return posts.filter((post) => post.date.substring(0,7) === yearMonth)
 }
 
+//キーワード検索(タイトルと本文)
+export function searchPostsByTitleAndContent(query:string):Post[]{
+  // 検索キーワードがない場合
+  if(!query || !query.trim()){
+    return getAllPosts();
+  }
+
+  const searchTerm = query.toLowerCase().trim();
+
+  return (
+    posts.filter((post) => {
+      // タイトル検索
+      const titleMatch = post.title.toLocaleLowerCase().includes(searchTerm);
+      //本文検索(HTMLタグを除去して検索)
+      const contentText = post.content.replace(/<[^>]*>/g,"").toLowerCase();
+
+      const contentMatch = contentText.includes(searchTerm);
+
+      return titleMatch || contentMatch
+    })
+  )
+}
+
 // 全件取得する
 export function getAllPosts(): Post[] {
   return posts.sort(

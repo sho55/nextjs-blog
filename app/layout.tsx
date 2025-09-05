@@ -2,6 +2,7 @@ import "@/app/globals.css"
 import Link from "next/link";
 import {Inter} from "next/font/google"
 import Navigation from "@/components/Navigation";
+import Breadcrumb from "@/components/Breadcrumb";
 
 const inter = Inter({subsets:["latin"]});
 
@@ -19,7 +20,7 @@ export default function RootLayout({
     <html lang="ja">
     <body className={inter.className}>
       <Navigation/>
-
+      <Breadcrumb/>
       <div className="min-h-screen bg-gray-50 text-gray-600">
         {children}
       </div>
