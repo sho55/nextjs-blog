@@ -1,4 +1,5 @@
 import { Post, PostFromJsonPlaceHolder, PostFromJsonPlaceHolderWithUser, User } from "@/types/post";
+import { fetchData } from "./api-client";
 
 // ダミー記事のデータ
 export const posts: Post[] = [
@@ -90,16 +91,17 @@ export function searchPostsByTitleAndContent(query:string):Post[]{
 export async function getPostsWithUsers(): Promise<PostFromJsonPlaceHolderWithUser[]> {
   try {
     const [postsRes,userRes] = await Promise.all([
-        fetch("https://jsonplaceholder.typicode.com/posts?_limit=5"),
-        fetch("https://jsonplaceholder.typicode.com/users")
+        fetchData("https://jsonplaceholder.typicode.com/posts?_limit=5"),
+        fetchData("https://jsonplaceholder.typicode.com/users")
     ])
-    if (!postsRes.ok || !userRes.ok) {
+    
+    if (postsRes.data.error || userRes.data.error) {
       throw new Error("データの取得に失敗しました");
     }
 
     // データ格納
-    const posts: PostFromJsonPlaceHolder[] = await postsRes.json();
-    const users: User[] = await userRes.json();
+    const posts: PostFromJsonPlaceHolder[] = await postsRes.data;
+    const users: User[] = await userRes.data;
 
     // 投稿にユーザー情報を結合
     const postsWithUser = posts.map((post) => ({ ...post,
