@@ -1,14 +1,4 @@
-export type Post = {
-  slug: string;
-  title: string;
-  content: string;
-  abstract: string;
-  date: string;
-  category: string;
-  author: string;
-  tags: string[];
-  readTime: number;
-};
+import { Post, PostFromJsonPlaceHolder, PostFromJsonPlaceHolderWithUser, User } from "@/types/post";
 
 // ダミー記事のデータ
 export const posts: Post[] = [
@@ -95,6 +85,31 @@ export function searchPostsByTitleAndContent(query:string):Post[]{
       return titleMatch || contentMatch
     })
   )
+}
+
+export async function getPostsWithUsers(): Promise<PostFromJsonPlaceHolderWithUser[]> {
+  try {
+    const [postsRes,userRes] = await Promise.all([
+        fetch("https://jsonplaceholder.typicode.com/posts?_limit=5"),
+        fetch("https://jsonplaceholder.typicode.com/users")
+    ])
+    if (!postsRes.ok || !userRes.ok) {
+      throw new Error("データの取得に失敗しました");
+    }
+
+    // データ格納
+    const posts: PostFromJsonPlaceHolder[] = await postsRes.json();
+    const users: User[] = await userRes.json();
+
+    // 投稿にユーザー情報を結合
+    const postsWithUser = posts.map((post) => ({ ...post,
+        user: users.find((user) => user.id === post.userId ) || ({} as User)
+    }));
+    return postsWithUser
+  } catch (error) {
+    console.error("データ取得エラー:", error);
+    return []; // エラー時は空配列を返す
+  }
 }
 
 // 全件取得する
