@@ -3,6 +3,7 @@ import Link from "next/link";
 import {Inter} from "next/font/google"
 import Navigation from "@/components/Navigation";
 import Breadcrumb from "@/components/Breadcrumb";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({subsets:["latin"]});
 
@@ -24,6 +25,7 @@ export default function RootLayout({
       <div className="min-h-screen bg-gray-50 text-gray-600">
         {children}
       </div>
+      <Toaster />
 
       <footer className="bg-gray-800 text-white py-8">
         <div className="container mx-auto px-4 text-center">

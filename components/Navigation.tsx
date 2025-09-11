@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import Button from "./ui/Button";
+import Button from "./ui/old_Button";
 
 export default function Navigation(){
     const pathname = usePathname()
