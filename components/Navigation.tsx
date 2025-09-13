@@ -1,11 +1,15 @@
 "use client"
 
+import { useUser } from "@/contexts/UserContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import Button from "./ui/old_Button";
+import { UserInfo } from "./UserInfo";
+import { Button } from "./ui/button";
 
 export default function Navigation(){
+    const {user} = useUser();
+    console.log("navigationUser:",user);
     const pathname = usePathname()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -39,8 +43,9 @@ export default function Navigation(){
                         href={navItem.href}
                         className={`font-medium transition-colors ${isActive(navItem.href) ?"text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-gray-800"}`}>{navItem.label}</Link>
                     ))}
+                    {user? <UserInfo/>: <Link href={"/auth/login"}><Button className="bg-blue-500">ログイン</Button></Link> }
                 </div>
-            {/* SPのナビゲーション */}
+            {/* SPのボタン */}
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <svg
                     className="h-6 w-6"

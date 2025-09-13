@@ -7,13 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Login } from "@/libs/user";
 import { useForm } from "@/hooks/useForm";
 import { toast } from "sonner";
 import { UserAuth } from "@/types/user";
 import { Loader2 } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
 
 export default function LoginForm() {
+  const {login,loading} = useUser();
   const router = useRouter();
   const { values, handleChange } = useForm<UserAuth>({
     initialValues: {
@@ -31,12 +32,9 @@ export default function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const { status } = await Login({
-        email: values.email,
-        password: values.password,
-      });
-      console.log(status);
-      if (status) {
+      const  success  = await login(values.email,values.password);
+      console.log(success);
+      if (success) {
         toast.success("ログインしました");
         router.push("/blog");
       } else {

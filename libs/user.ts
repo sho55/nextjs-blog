@@ -1,5 +1,5 @@
 import { validateObject, ValidationRule } from './validations'
-import { UserAuth } from '@/types/user';
+import { UserApi, UserAuth } from '@/types/user';
 
 
 // 例: email:demo@example.com, password:password
@@ -7,6 +7,23 @@ const dummyLoginData = {
   email: "demo@example.com",
   password: "password",
 };
+
+// ダミーユーザーデータ（実際のアプリではAPIから取得）
+const DEMO_USER: UserApi = {
+  id: 1,
+  email: dummyLoginData.email,
+  name: "デモユーザー",
+  role: "user",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+export type AuthResponseType = {
+  user?:UserApi;
+  success:boolean;
+  message?: string;
+}
+
 /**
  * バリデーション結果の型定義
  */
@@ -46,56 +63,91 @@ export function validateUserAuth(data: UserAuth): ValidationResult {
   };
 }
 
-export async function Login(user: UserAuth): Promise<{ status: boolean }> {
+export async function Login(user: UserAuth): Promise<AuthResponseType> {
   try {
+    const {email,password} = user
     await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    const validation = validateUserAuth({email,password});
+    if(!validation.isValid){
+      return {
+        success: false,
+        message: validation.errors.join(","),
+      };
+    }
+
     // ダミーの処理
     if (
-      user.email === dummyLoginData.email &&
-      user.password === dummyLoginData.password
+      email === dummyLoginData.email &&
+      password === dummyLoginData.password
     ) {
       console.log("ログインしました");
-      return { status: true };
+      return { success: true, user:DEMO_USER, message:"ログインに成功しました" };
     } else {
-      throw new Error("ログイン情報が正しくありません");
+     return { success: false, message:"メールアドレスまたはパスワードが正しくありません" }
     }
   } catch (error) {
     console.error("ログインエラー:", error);
-    throw new Error(`ログインに失敗しました:${error}`);
+    return {
+          success: false,
+          message: "認証中にエラーが発生しました",
+        };
   }
 }
 
-export async function Register(user: UserAuth): Promise<{ status: boolean }> {
+export async function Register(user: UserAuth): Promise<AuthResponseType> {
   try {
-    const validation = validateUserAuth(user);
-    if (!validation.isValid) {
-      throw new Error(validation.errors.join(", ")!);
-    }
-
+    const {email,password,name} = user
     // ダミーの登録処理（実際にはAPI呼び出しやデータベース操作）
     await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    
+    const validation = validateUserAuth({email,password});
+    if(!validation.isValid){
+      return {
+        success: false,
+        message: validation.errors.join(","),
+      };
+    }
 
     // 既存のユーザーチェック（ダミー）
-    if (user.email === dummyLoginData.email) {
+    if (email === dummyLoginData.email) {
       throw new Error("このメールアドレスは既に使用されています");
     }
 
+    // 作成できたときのユーザー(ダミー)
+    const newUser: UserApi = {
+      id:9999,
+      email:email,
+      name:name || "",
+      role:"user",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
     console.log("ユーザー登録しました:", user.name);
-    return { status: true };
+    return { success: true, user:newUser, message:"ユーザー登録に成功しました" };
   } catch (error) {
     console.error("登録エラー:", error);
-    throw error; // エラーを再スローして呼び出し元で処理
+    return { success: false, message:"ユーザー登録に失敗しました" };
   }
 }
 
-export async function Logout(): Promise<{ status: boolean }> {
+export async function Logout(): Promise<AuthResponseType> {
   try {
     // ダミーの処理
     await new Promise((resolve) => setTimeout(resolve, 1500));
     console.log("ログアウトしました");
-    return { status: true };
+    return {
+      success: true,
+      message: "ログアウトしました",
+    };
   } catch (error) {
     console.error(error);
-    return { status: false };
+    return {
+      success: false,
+      message: "ログアウト中にエラーが発生しました",
+    };
   }
 }
+

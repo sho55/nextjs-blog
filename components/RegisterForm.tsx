@@ -37,14 +37,14 @@ export default function RegisterForm() {
 
     setIsLoading(true);
     try {
-      const { status } = await Register({
+      const { success } = await Register({
         email: values.email,
         password: values.password,
         passwordConfirm: values.passwordConfirm,
         name: values.name,
       });
-      console.log(status);
-      if (status) {
+      console.log(success);
+      if (success) {
         toast.success("登録しました");
         router.push("/blog");
       } else {
