@@ -7,6 +7,8 @@ import Link from "next/link";
 export function UserInfo() {
   const { user, logout } = useUser();
 
+  console.log(user?.user_metadata.full_name)
+
   const handleSignOut = async () => {
     try {
       await logout();
@@ -26,14 +28,14 @@ export function UserInfo() {
           <User className="h-4 w-4" />
           <Link href="/my-page" className="">
             <p className="text-blue-700 hover:text-blue-800 text-sm font-semibold">
-              {user.name}
+              {user.user_metadata?.full_name}
             </p>
           </Link>
         </div>
         <p className="text-sm">
           権限:
           <span className="text-gray-800 font-semibold">
-            {user.role || "ユーザー"}
+            {user.user_metadata?.role || "ユーザー"}
           </span>
         </p>
       </div>

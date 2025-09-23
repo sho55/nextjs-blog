@@ -7,19 +7,17 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { UserApi } from "@/types/user";
-import {
-  Login,
-  Register,
-  Logout,
-  AuthResponseType,
-} from "@/libs/user";
+import { User, AuthError, Session} from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase";
+import { Profile } from "@/types/profile";
+import { AuthResult, authService } from "@/lib/auth";
 
 type UserContextType = {
-  user: UserApi | null;
+  user: User | null;
+  profile: Profile | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
-  logout: () => Promise<void>;
+  logout: () => Promise<boolean>;
   loading: boolean;
   error: string | null;
   clearError: () => void;
@@ -28,9 +26,10 @@ type UserContextType = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserApi | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profile,setProfile] = useState<Profile | null>(null);
 
   // エラークリア関数
   const clearError = useCallback(() => {
@@ -39,51 +38,78 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // 初期化: 保存されたユーザー情報の読み込み
   useEffect(() => {
-    const initializeUser = async () => {
+    // 初期セッション状態の取得
+    const initializeAuth = async () => {
       try {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-          const parsedUser: UserApi = JSON.parse(savedUser);
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+        
 
-          // 型安全な検証
-          if (parsedUser.id && parsedUser.email) {
-            setUser(parsedUser);
-          } else {
-            localStorage.removeItem("user");
-          }
+        // プロフィールの情報を取得
+        if(currentUser){
+          // 処理を追加します 
+          await fetchProfile(currentUser.id); 
         }
+        
       } catch (error) {
         console.error("ユーザー情報の読み込みに失敗:", error);
-        localStorage.removeItem("user");
         setError("保存されたユーザー情報の読み込みに失敗しました");
       } finally {
         setLoading(false);
       }
     };
 
-    initializeUser();
+    initializeAuth();
+
+
+    // 認証状態の変更を監視する
+    const {
+      data:{ subscription},
+    } = supabase.auth.onAuthStateChange(async(event,session) =>{
+      console.log("認証イベント:",event);
+      setUser(session?.user ?? null)
+      setLoading(false)
+      // プロフィールの情報を変更
+      if(session?.user){
+        // 処理を追加します  
+        await fetchProfile(session.user.id)
+      }else{
+        setProfile(null);
+      }
+    })
+    return () => subscription.unsubscribe();
   }, []);
 
-  // ログイン処理（認証サービスを使用）
+  const fetchProfile = async(userId: string) => {
+    try{
+      const { data, error } = await supabase.from("profile").select("*").eq("id",userId).single(); 
+
+      if (error) {
+        console.error("プロファイル取得エラー:", error);
+        return;
+      }
+      setProfile(data);
+    }catch(error){
+      console.error("プロファイル取得中にエラーになりました:", error);
+      return
+    }
+  }
+
+  // ログイン処理（Supabaseを使用）
   const login = useCallback(
     async (email: string, password: string): Promise<boolean> => {
       setLoading(true);
       setError(null);
 
       try {
-        const result: AuthResponseType = await Login({
-          email,
-          password,
-        });
+        const result:AuthResult  = await authService.signIn(email,password,);
 
-        if (result.success && result.user) {
-          setUser(result.user);
-          localStorage.setItem("user", JSON.stringify(result.user));
-          return true;
-        } else {
+        if (!result.success) {
           setError(result.message || "ログインに失敗しました");
           return false;
         }
+
+        return true;
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "ログインに失敗しました";
@@ -98,25 +124,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // ユーザー登録処理
   const register = useCallback(
-    async (email: string, password: string, name: string): Promise<boolean> => {
+    async (email: string, password: string, fullName: string): Promise<boolean> => {
       setLoading(true);
       setError(null);
 
       try {
-        const result: AuthResponseType = await Register({
+        const result: AuthResult = await authService.signUp(
           email,
           password,
-          name,
-        });
+          fullName,
+        );
 
-        if (result.success && result.user) {
-          setUser(result.user);
-          localStorage.setItem("user", JSON.stringify(result.user));
-          return true;
-        } else {
+        if (!result.success) {
           setError(result.message || "登録に失敗しました");
           return false;
         }
+        return true;
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "登録に失敗しました";
@@ -130,18 +153,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   );
 
   // ログアウト処理（ログアウトサービスを使用）
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (): Promise<boolean> => {
     setLoading(true);
+    setError(null);
     try {
-      await Logout();
-      setUser(null);
-      localStorage.removeItem("user");
-      setError(null);
+      const result: AuthResult = await authService.signOut();
+
+      if (!result.success) {
+        setError(result.message || "ログアウトに失敗しました");
+        return false;
+      }
+      return true;
+
     } catch (err) {
       console.error("ログアウトエラー:", err);
       // ローカル状態はクリアする（サーバー側でエラーが出てもローカルはログアウト）
       setUser(null);
-      localStorage.removeItem("user");
+      setProfile(null);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -151,6 +180,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     <UserContext.Provider
       value={{
         user,
+        profile,
         login,
         register,
         logout,

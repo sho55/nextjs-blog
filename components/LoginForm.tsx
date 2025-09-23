@@ -26,7 +26,7 @@ export default function LoginForm() {
       password: { required: true, minLength: 8 },
     },
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(loading);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

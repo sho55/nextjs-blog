@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TestConnection {
+  id      Int     @id @default(autoincrement())
+  email   String
+  content String?
+}
+
+model Profile {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  full_name String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Post      Post[]
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  isPublished Boolean   @default(false)
+  slug        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    String    @db.Uuid
+  categoryId  String?
+  Profile     Profile   @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags        Tag[]     @relation("PostToTag")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  posts       Post[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  posts     Post[]   @relation("PostToTag")
+}
+
+enum Role {
+  USER
+  ADMIN
+}

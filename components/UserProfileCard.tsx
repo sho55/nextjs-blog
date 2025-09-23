@@ -56,7 +56,7 @@ export function UserProfileCard() {
       <CardContent className="space-y-4">
         <div className="flex items-center space-x-3">
           <div>
-            <p className="font-medium">{user.name}</p>
+            <p className="font-medium">{user.user_metadata.fullName}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
           <Button

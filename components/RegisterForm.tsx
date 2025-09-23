@@ -7,14 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Register } from "@/libs/user";
 import { useForm } from "@/hooks/useForm";
 import { toast } from "sonner";
 import { UserRegister } from "@/types/user";
 import { Loader2 } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
+
 
 export default function RegisterForm() {
   const router = useRouter();
+  const {register, loading,error,clearError} = useUser();
   const { values, handleChange } = useForm<UserRegister>({
     initialValues: {
       email: "",
@@ -24,8 +26,8 @@ export default function RegisterForm() {
     },
     validationRules: {
       email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-      password: { required: true, minLength: 8 },
-      passwordConfirm: { required: true, minLength: 8 },
+      password: { required: true, minLength: 6 },
+      passwordConfirm: { required: true, minLength: 6 },
       name: { required: true },
     },
   });
@@ -37,16 +39,15 @@ export default function RegisterForm() {
 
     setIsLoading(true);
     try {
-      const { success } = await Register({
-        email: values.email,
-        password: values.password,
-        passwordConfirm: values.passwordConfirm,
-        name: values.name,
-      });
+      const  success  = await register(
+        values.email,
+        values.password,
+        values.name,
+      );
       console.log(success);
       if (success) {
-        toast.success("登録しました");
-        router.push("/blog");
+        toast.success("登録しました。確認メールをご確認ください");
+        router.push("/auth/login");
       } else {
         toast.error("サーバーの登録エラー");
       }
