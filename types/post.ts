@@ -56,7 +56,7 @@ export type PostPrisma = {
   slug:string;
   isPublished: boolean;
   createdAt: Date;
-  category: Category;
-  tags: Tag[];
-  author:Profile;
+  category: { id: string; name: string } | null;
+  tags: { name: string }[];
+  profile:Profile;
 }

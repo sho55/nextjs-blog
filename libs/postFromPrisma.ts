@@ -159,6 +159,18 @@ export async function getAllPosts(){
     return posts;
 }
 
+export async function getPostsByCategory(categoryName: string){
+    const posts = await prisma.post.findMany({
+        where:{ category:{name: categoryName}},
+        include:{
+            category: true,
+            profile: true,
+            tags: true,
+        }
+    });
+    return posts;
+}
+
 export async function getPostBySlug(targetSlug:string){
     const post = await prisma.post.findFirst({
         include:{
@@ -172,6 +184,78 @@ export async function getPostBySlug(targetSlug:string){
         }
     })
     return post;
+}
+
+// サイドバー用：カテゴリー別のリンクを取得する関数
+export async function getCategoriesForSidebar() {
+  try {
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            posts: {
+              where: {
+                isPublished: true, // 公開済みの投稿のみカウント
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      postCount: category._count.posts,
+      href: `/blog/category/${category.name}`,
+    }));
+  } catch (error) {
+    console.error("カテゴリー取得エラー:", error);
+    return [];
+  }
+}
+
+// サイドバー用：最新の投稿3件を取得する関数
+export async function getLatestPostsForSidebar() {
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        isPublished: true, // 公開済みの投稿のみ
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        createdAt: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 3, // 最新3件のみ
+    });
+
+    return posts.map((post) => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      href: `/blog/${post.slug}`,
+      categoryName: post.category?.name || "未分類",
+      createdAt: post.createdAt,
+    }));
+  } catch (error) {
+    console.error("最新投稿取得エラー:", error);
+    return [];
+  }
 }
 
 // U...更新
@@ -300,6 +384,28 @@ export async function updatePostFromPrisma(
 }
 
 // D...削除
+// 投稿削除関数
+export async function deletePostFromPrisma(
+  postId: string
+): Promise<ActionResult> {
+  // 投稿の削除
+  try {
+    const post = await prisma.post.delete({
+      where: { id: postId },
+    });
+    return {
+      success: true,
+      message: "記事を削除しました！",
+      data: post,
+    };
+  } catch (error) {
+    console.error("削除エラー:", error);
+    return {
+      success: false,
+      errors: ["記事の削除中にエラーが発生しました"],
+    };
+  }
+}
 
 export async function getCategories() {
     const categories = await prisma.category.findMany();

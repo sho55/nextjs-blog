@@ -1,3 +1,4 @@
+import DeletePostButton from "@/components/DeletePostButton";
 import { EditPostButton } from "@/components/EditPostButton";
 import { getPostBySlug } from "@/libs/postFromPrisma";
 import { Metadata} from "next";
@@ -69,8 +70,14 @@ export default async function PostPage({ params }:Props){
             <div className="max-w-none text-gray-600"
             dangerouslySetInnerHTML={{ __html: post.content}}
             /> 
+            
+            <div className="flex justify-between py-4">
+            {/* 削除ボタン */}
+            <DeletePostButton postId={post.id} />
             {/* 編集ボタン */}
             <EditPostButton postAuthorId={post.profile.id} postSlug={post.slug}/>
+          
+            </div>
         </article>
     )
 }

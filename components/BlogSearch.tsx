@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { PostPrisma } from "@/types/post";
 import Link from "next/link";
+import PostCard from "./PostCard";
 
 type BlogSearchProps = {
   posts: PostPrisma[];
@@ -70,35 +71,13 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
       <div className="space-y-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post) => (
-            <article
-              key={post.id}
-              className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
-            >
-              <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                {highlightText(post.title)}
-              </h2>
-
-              {post.author && (
-                <p className="text-blue-600 text-sm mb-2">
-                  by {post.author.full_name}
-                </p>
-              )}
-
-              <p className="text-gray-600 mb-4 line-clamp-3">
-                {highlightText((post.content || "").slice(0, 200) + "...")}
-              </p>
-
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">
-                  記事ID: {post.id}
-                </span>
-                <Link href={`/blog/${post.slug}`}>
-                <button className="text-blue-600 hover:text-blue-800 font-medium">
-                  続きを読む →
-                </button>
-                </Link>
-              </div>
-            </article>
+            <PostCard
+            key={post.id}
+            post={post}
+            showAuthor={true}
+            showContent={true}
+            showDate={true}
+            />
           ))
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow">

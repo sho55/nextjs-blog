@@ -7,8 +7,6 @@ import Link from "next/link";
 export function UserInfo() {
   const { user, logout } = useUser();
 
-  console.log(user?.user_metadata.full_name)
-
   const handleSignOut = async () => {
     try {
       await logout();
