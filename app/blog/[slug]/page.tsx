@@ -2,11 +2,11 @@ import DeletePostButton from "@/components/DeletePostButton";
 import { EditPostButton } from "@/components/EditPostButton";
 import { getPostBySlug } from "@/libs/postFromPrisma";
 import { Metadata} from "next";
-type Props = {
+type pageProps = {
     params: {slug: string}
 }
 
-export async function generateMetadata({params}:Props) : Promise<Metadata> {
+export async function generateMetadata({params}:pageProps) : Promise<Metadata> {
     const post = await getPostBySlug(params.slug);
 
     if(!post){
@@ -26,7 +26,7 @@ export async function generateMetadata({params}:Props) : Promise<Metadata> {
     }
 }
 
-export default async function PostPage({ params }:Props){
+export default async function PostPage({ params }:pageProps){
     const post = await getPostBySlug(params.slug)
 
     // エラーハンドリング
