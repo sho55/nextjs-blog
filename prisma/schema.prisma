@@ -34,7 +34,7 @@ model Post {
   updatedAt   DateTime  @updatedAt
   authorId    String    @db.Uuid
   categoryId  String?
-  Profile     Profile   @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  profile     Profile   @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   tags        Tag[]     @relation("PostToTag")
 }

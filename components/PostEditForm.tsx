@@ -16,19 +16,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, AlertCircle, Loader2 } from "lucide-react";
-import { BlogCreate } from "@/types/blog";
-import { createPost } from "@/libs/blog";
+import { updatePostFromPrisma } from "@/libs/postFromPrisma";
 import { useForm } from "@/hooks/useForm";
 import { ValidationRule } from "@/libs/validations";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Category } from "@/lib/generated/prisma";
-import { createPostFromPrisma } from "@/libs/postFromPrisma";
 import { useUser } from "@/contexts/UserContext";
+import { Category } from "@/lib/generated/prisma";
+import { PostEditFromPrisma } from "@/types/post";
 
 // バリデーションルールの定義
 const validationRules: Partial<
-  Record<keyof BlogCreate, ValidationRule<any>>
+  Record<keyof PostEditFromPrisma, ValidationRule<any>>
 > = {
   title: {
     required: true,
@@ -50,24 +49,36 @@ const validationRules: Partial<
   },
 };
 
-type PostCreationFormProps ={
+type PostEditFormProps = {
   categories: Category[];
-}
+  post: PostEditFromPrisma;
+};
 
-export default function PostCreationForm({
-  categories 
-}:PostCreationFormProps) {
+export default function PostEditForm({ categories, post }: PostEditFormProps) {
   const router = useRouter();
-  const {user} = useUser();
+  const { user } = useUser();
 
-  const initialValues: BlogCreate = {
-    title: "",
-    category: "",
-    tags: [],
-    content: "",
-    slug: "",
-    isPublished: false,
+  const initialValues: PostEditFromPrisma = {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    slug: post.slug,
+    category: post.category
+      ? { id: post.category.id, name: post.category.name }
+      : null,
+    tags: post.tags.map((tag) => ({ name: tag.name })),
+    isPublished: post.isPublished,
+    authorId: post.authorId,
   };
+
+  if (!post) {
+    return <div>記事が見つかりません</div>;
+  }
+  // ユーザーがログインしていない、または記事の作者でない場合はBlogトップに戻す
+  if (!user || !post.authorId || post.authorId !== user.id) {
+    toast.error("この記事の編集権限はありません");
+    router.push("/blog");
+  }
 
   const {
     values: formData,
@@ -96,14 +107,17 @@ export default function PostCreationForm({
   };
 
   // カスタムフィールド変更ハンドラー（useFormと連携）
-  const handleCustomChange = (name: keyof BlogCreate, value: any) => {
+  const handleCustomChange = (name: keyof PostEditFromPrisma, value: any) => {
     handleChange(name, value);
   };
 
   // タグの追加
   const addTag = () => {
-    if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
-      const newTags = [...(formData.tags || []), tagInput.trim()];
+    if (
+      tagInput.trim() &&
+      !formData.tags?.some((tag) => tag.name === tagInput.trim())
+    ) {
+      const newTags = [...(formData.tags || []), { name: tagInput.trim() }];
       handleCustomChange("tags", newTags);
       setTagInput("");
     }
@@ -111,7 +125,8 @@ export default function PostCreationForm({
 
   // タグの削除
   const removeTag = (tagToRemove: string) => {
-    const newTags = formData.tags?.filter((tag) => tag !== tagToRemove) || [];
+    const newTags =
+      formData.tags?.filter((tag) => tag.name !== tagToRemove) || [];
     handleCustomChange("tags", newTags);
   };
 
@@ -121,7 +136,6 @@ export default function PostCreationForm({
       e.preventDefault();
       addTag();
     }
-    
   };
 
   // 独自のisSubmitting状態を追加
@@ -129,12 +143,6 @@ export default function PostCreationForm({
 
   // フォーム送信（Server Actionを使用）
   const handleFormSubmit = async (e: React.FormEvent) => {
-    // ログイン状態にあるか確認
-    if (!user){
-      toast.error("ログインをしてください");
-      return;
-    }
-
     e.preventDefault();
 
     // 送信中の場合は早期リターン
@@ -144,38 +152,34 @@ export default function PostCreationForm({
 
     try {
       // FormDataを作成してServer Actionに渡す
+      // 追加
+      if (!user) {
+        toast.error("ログインしてください");
+        return;
+      }
       const formDataForAction = new FormData();
+      formDataForAction.append("postId", post.id); // 投稿IDを追加
       formDataForAction.append("title", formData.title);
-      formDataForAction.append("category", formData.category ?? "");
+      formDataForAction.append("category", formData.category?.id ?? "");
       formDataForAction.append("content", formData.content);
       formDataForAction.append("slug", formData.slug || "");
       formDataForAction.append("isPublished", formData.isPublished.toString());
-      formDataForAction.append("tags", JSON.stringify(formData.tags || []));
-      formDataForAction.append("authorId",user.id)
-
-      // 元のJavaScriptオブジェクトを表示
-      console.log(
-        "❌ これでは中身が見えない",
-        "formDataForAction:",
-        formDataForAction
+      formDataForAction.append(
+        "tags",
+        JSON.stringify(formData.tags?.map((tag) => tag.name) || [])
       );
+      formDataForAction.append("authorId", user.id); // 追加
 
-      // FormDataの中身を確認する正しい方法
-      console.log("=== FormDataの内容 ===");
-      for (const [key, value] of formDataForAction.entries()) {
-        console.log(`${key}:`, value);
-      }
-      console.log("========================");
-
-      const result = await createPostFromPrisma(formDataForAction);
+      const result = await updatePostFromPrisma(formDataForAction);
 
       if (result.success) {
-        toast.success(result.message || "記事を保存しました！");
+        toast.success(result.message || "記事を更新しました！");
         // フォームをリセット
         reset();
         router.push("/blog");
       } else {
-        toast.error("保存に失敗しました");
+        console.log("エラー詳細:", result.errors);
+        toast.error(`保存に失敗しました: ${result.errors?.join(", ")}`);
       }
     } catch (error) {
       console.error("送信エラー:", error);
@@ -185,12 +189,11 @@ export default function PostCreationForm({
     }
   };
 
-
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>新規記事作成</CardTitle>
+          <CardTitle>記事編集</CardTitle>
           <Button
             type="button"
             variant="outline"
@@ -232,9 +235,17 @@ export default function PostCreationForm({
                 カテゴリ <span className="text-destructive">*</span>
               </Label>
               <Select
-                value={formData.category || ""}
+                value={formData.category?.id || ""}
                 onValueChange={(value) => {
-                  handleCustomChange("category", value);
+                  const selectedCategory = categories.find(
+                    (cat) => cat.id === value
+                  );
+                  handleCustomChange(
+                    "category",
+                    selectedCategory
+                      ? { id: selectedCategory.id, name: selectedCategory.name }
+                      : null
+                  );
                 }}
                 onOpenChange={(open) => {
                   if (!open && formData.category) {
@@ -250,12 +261,13 @@ export default function PostCreationForm({
                       : ""
                   }
                 >
-                
-                <SelectValue placeholder="カテゴリを選択" />
+                  <SelectValue placeholder="カテゴリを選択" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category: Category) => (
-                    <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -276,13 +288,13 @@ export default function PostCreationForm({
             </Label>
             <div className="flex flex-wrap gap-2 mb-3">
               {formData.tags?.map((tag) => (
-                <Badge key={tag} variant="secondary" className="pr-1">
-                  {tag}
+                <Badge key={tag.name} variant="secondary" className="pr-1">
+                  {tag.name}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeTag(tag)}
+                    onClick={() => removeTag(tag.name)}
                     className="ml-1 h-4 w-4 p-0 hover:bg-transparent"
                   >
                     <X className="h-3 w-3" />

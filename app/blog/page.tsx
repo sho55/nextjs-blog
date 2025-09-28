@@ -1,14 +1,10 @@
-import { getPostsWithUsers } from "@/libs/posts";
+// import { getPostsWithUsers } from "@/libs/posts";
 import BlogSearch from "@/components/BlogSearch";
+import { getAllPosts } from "@/libs/postFromPrisma";
 
-export default async function BlogPage() {
-  // 3秒待つ
-  // await new Promise((resolve) => setTimeout(resolve,3000))
-  // // エラーが発生
-  // throw new Error("opps...sorry...");
-  
+export default async function BlogPage() {  
   // 1. サーバーコンポーネントでデータ取得
-  const posts = await getPostsWithUsers();
+  const posts = await getAllPosts();
 
   return (
     <div className="container mx-auto px-4 py-8">

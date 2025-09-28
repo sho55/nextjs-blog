@@ -1,4 +1,5 @@
-import { getPostBySlug } from "@/libs/posts";
+import { EditPostButton } from "@/components/EditPostButton";
+import { getPostBySlug } from "@/libs/postFromPrisma";
 import { Metadata} from "next";
 type Props = {
     params: {slug: string}
@@ -44,22 +45,21 @@ export default async function PostPage({ params }:Props){
             <header className="mb-6">
                 <div className="flex items-center justify-between mb-4">
                     <span className="bg-blue-100 text-blue-800 rounded-lg p-2">
-                        {post.category}
+                        {post.category?.name}
                     </span>
                     <time className="text-sm text-gray-500">
-                        {new Date(post.date).toLocaleString("jp-JP")}
+                        {new Date(post.createdAt).toLocaleString("jp-JP")}
                     </time>
-                    <span>{post.readTime}分で読める</span>
                 </div>
 
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">{post.title}</h1>
-                <div className="flex items-center text-sm text-gray-600">by:{post.author}</div>
+                <div className="flex items-center text-sm text-gray-600">by:{post.profile.full_name}</div>
 
                 <div className="flex flex-wrap gap-2">
                     {post.tags.map(
                         (tag) => (
-                            <span key={tag} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                                #{tag}
+                            <span key={tag.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                #{tag.name}
                             </span>
                         )
                     )}
@@ -69,6 +69,8 @@ export default async function PostPage({ params }:Props){
             <div className="max-w-none text-gray-600"
             dangerouslySetInnerHTML={{ __html: post.content}}
             /> 
+            {/* 編集ボタン */}
+            <EditPostButton postAuthorId={post.profile.id} postSlug={post.slug}/>
         </article>
     )
 }

@@ -1,6 +1,9 @@
 import PostCreationForm from "@/components/PostCreation";
+import { getCategories } from "@/libs/postFromPrisma";
 
-export default function PostCreationPage() {
+
+export default async function PostCreationPage() {
+  const categories = await getCategories();
   return (
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -9,7 +12,7 @@ export default function PostCreationPage() {
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
               記事を作成
             </h1>
-            <PostCreationForm />
+            <PostCreationForm categories={categories}/>
           </div>
         </div>
       </div>

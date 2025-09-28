@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { PostFromJsonPlaceHolderWithUser } from "@/types/post";
+import { PostPrisma } from "@/types/post";
+import Link from "next/link";
 
 type BlogSearchProps = {
-  posts: PostFromJsonPlaceHolderWithUser[];
+  posts: PostPrisma[];
 };
 
 export default function BlogSearch({ posts }: BlogSearchProps) {
@@ -19,7 +20,7 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
     return posts.filter(
       (post) =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (post.body || "").toLowerCase().includes(searchTerm.toLowerCase())
+        (post.content || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [posts, searchTerm]);
 
@@ -77,23 +78,25 @@ export default function BlogSearch({ posts }: BlogSearchProps) {
                 {highlightText(post.title)}
               </h2>
 
-              {post.user && (
+              {post.author && (
                 <p className="text-blue-600 text-sm mb-2">
-                  by {post.user.name}
+                  by {post.author.full_name}
                 </p>
               )}
 
               <p className="text-gray-600 mb-4 line-clamp-3">
-                {highlightText((post.body || "").slice(0, 200) + "...")}
+                {highlightText((post.content || "").slice(0, 200) + "...")}
               </p>
 
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">
                   記事ID: {post.id}
                 </span>
+                <Link href={`/blog/${post.slug}`}>
                 <button className="text-blue-600 hover:text-blue-800 font-medium">
                   続きを読む →
                 </button>
+                </Link>
               </div>
             </article>
           ))

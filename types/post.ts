@@ -1,3 +1,4 @@
+import { Category, Profile, Tag } from "@/lib/generated/prisma";
 export type Post = {
   slug: string;
   title: string;
@@ -25,4 +26,37 @@ export type User = {
 
 export type PostFromJsonPlaceHolderWithUser = PostFromJsonPlaceHolder &{
     user:User
+}
+
+export type PostCreateFromPrisma ={
+  slug: string;
+  title: string;
+  content: string;
+  category: string;
+  tags?: string[];
+  isPublished: boolean;
+  authorId: string;
+}
+
+export type PostEditFromPrisma = {
+  id: string;
+  title: string;
+  content: string;
+  slug: string;
+  category: { id: string; name: string } | null;
+  tags: { name: string }[];
+  isPublished: boolean;
+  authorId: string;
+};
+
+export type PostPrisma = {
+  id: string;
+  title:string;
+  content:string;
+  slug:string;
+  isPublished: boolean;
+  createdAt: Date;
+  category: Category;
+  tags: Tag[];
+  author:Profile;
 }
