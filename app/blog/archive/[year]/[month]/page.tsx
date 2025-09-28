@@ -3,14 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 type Props = {
-  params: {
-    year: string;
-    month: string;
-  };
+  params: Promise<{
+      year: string;
+      month: string;
+    }>;
 };
 
-export default function ArchivePage({ params }: Props) {
-  const { year, month } = params;
+export default async function ArchivePage({ params }: Props) {
+  const { year, month } = await params;
 
   // 年月のチェック
   const yearNum = parseInt(year);

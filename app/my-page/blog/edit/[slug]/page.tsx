@@ -1,17 +1,15 @@
 import PostEditForm from "@/components/PostEditForm";
 import { getCategories, getPostBySlug } from "@/libs/postFromPrisma";
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 export default async function PostCreationPage({ params }: Props) {
+  const {slug} = await params;
   const categories = await getCategories();
   // パラメータからslugを取得
-  const resolvedParams = params;
-  if (!resolvedParams.slug) {
+  if (!slug) {
     return <div>記事が見つかりません</div>;
   }
-  //Slugからページの情報を取得
-  const slug = resolvedParams.slug;
 
   const post = await getPostBySlug(slug);
   if (!post) {
