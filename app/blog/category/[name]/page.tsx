@@ -3,18 +3,13 @@ import Link from "next/link";
 import PostCard from "@/components/PostCard";
 
 type Props = {
-    params : {name:string};
-}
-
-export async function getFormattedCaseCategory({params}:Props){
-    return  params.name.charAt(0).toLocaleUpperCase()+params.name.slice(1);
+    params : Promise<{name:string}>;
 } 
 
 export default async function CategoryPage({params}:Props){
-    const categoryName = decodeURIComponent(params.name);
-    // const categoryName = params.name;
+    const {name} = await params;
+    const categoryName = decodeURIComponent(name);
     const posts = await getPostsByCategory(categoryName);
-    // const displayCategoryName = await getFormattedCaseCategory({params});
     return (
         <div className="max-w-3xl mx-auto">
             {/* カテゴリーヘッダー */}
