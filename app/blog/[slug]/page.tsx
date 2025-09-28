@@ -2,12 +2,13 @@ import DeletePostButton from "@/components/DeletePostButton";
 import { EditPostButton } from "@/components/EditPostButton";
 import { getPostBySlug } from "@/libs/postFromPrisma";
 import { Metadata} from "next";
-type pageProps = {
-    params: {slug: string}
+type Props = {
+    params: Promise<{slug:string}>
 }
 
-export async function generateMetadata({params}:pageProps) : Promise<Metadata> {
-    const post = await getPostBySlug(params.slug);
+export async function generateMetadata({params}:Props) : Promise<Metadata> {
+    const {slug} = await params;
+    const post = await getPostBySlug(slug);
 
     if(!post){
         return {
@@ -26,8 +27,9 @@ export async function generateMetadata({params}:pageProps) : Promise<Metadata> {
     }
 }
 
-export default async function PostPage({ params }:pageProps){
-    const post = await getPostBySlug(params.slug)
+export default async function PostPage({ params }:Props){
+    const {slug} = await params;
+    const post = await getPostBySlug(slug)
 
     // エラーハンドリング
     // 記事がないとき
