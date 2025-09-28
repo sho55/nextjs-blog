@@ -7,7 +7,13 @@ import { Category, PrismaClient } from "@/lib/generated/prisma";
 import { revalidatePath } from "next/cache";
 
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources:{
+    db:{
+      url:process.env.DATABASE_URL,
+    } 
+  }
+});
 
 // 投稿フォームのバリデーションルール（共通バリデーション機能を使用）
 const postValidationRules: Partial<
